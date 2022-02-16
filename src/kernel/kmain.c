@@ -1,0 +1,16 @@
+#include <drivers/gfx/vga.h>
+#include <kernel/gdt.h>
+#include <kernel/idt.h>
+#include <kernel/irq.h>
+#include <kernel/pic.h>
+
+void kmain(void *arg)
+{
+    /* GDT, IDT, and PIC */
+    gdt_init(); idt_init(); pic_init();
+
+    /* vga for kprint */
+    vga_init();
+
+    kprint("hello, world");
+}
