@@ -13,7 +13,7 @@ static uint64_t __pml4_;
 #define PT_ATOEI(addr)   (((addr) >> 12) & 0x1FF)
 #define V_TO_P(addr)     ((uint64_t)addr - KVSTART + KPSTART)
 
-int mmu_native_init(void)
+int mm_native_init(void)
 {
     kmemset(__pml4, 0, sizeof(__pml4));
     kmemset(__pdpt, 0, sizeof(__pdpt));

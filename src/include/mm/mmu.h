@@ -3,7 +3,10 @@
 
 #include <sys/types.h>
 
-/* Initialize the memory management unit */
-int mmu_init(void);
+/* Initialize the memory management unit
+ *
+ * # Arguments
+ * `arg` - pointer to multiboot2 information */
+int mm_init(void *arg);
 
 #endif /* __MMU_H__ */

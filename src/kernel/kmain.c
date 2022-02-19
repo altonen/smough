@@ -13,8 +13,8 @@ void kmain(void *arg)
     /* vga for kprint */
     vga_init();
 
-    /* initialize mmu and all memory allocators */
-    mmu_init();
+    /* initialize memory manager and all memory allocators */
+    mm_init(arg);
 
     kprint("hello, world");
 }
