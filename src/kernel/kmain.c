@@ -3,6 +3,7 @@
 #include <kernel/idt.h>
 #include <kernel/irq.h>
 #include <kernel/pic.h>
+#include <mm/mmu.h>
 
 void kmain(void *arg)
 {
@@ -11,6 +12,9 @@ void kmain(void *arg)
 
     /* vga for kprint */
     vga_init();
+
+    /* initialize memory manager and all memory allocators */
+    mm_init(arg);
 
     kprint("hello, world");
 }

@@ -38,6 +38,6 @@ static inline void amd64_set_cr3(uint64_t address)
 }
 
 /* Initialize the archictecture-specific page directories */
-int mmu_native_init(void);
+int mm_native_init(void);
 
 #endif /* __AMD64_MMU_TYPES_H__ */

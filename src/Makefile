@@ -4,6 +4,8 @@ include $(ROOTDIR)/Makefile.config
 include $(ARCHDIR)/make.config
 include $(DRIVERDIR)/make.config
 include $(LIBRARYDIR)/make.config
+include $(MMUDIR)/make.config
+include $(FSDIR)/make.config
 
 DESTDIR=$(realpath $(shell pwd)/../sysroot)
 
@@ -14,6 +16,8 @@ KERNEL_OBJS= \
 	$(KERNEL_ARCH_OBJS) \
 	$(KERNEL_DRIVER_OBJS) \
 	$(KERNEL_LIB_OBJS) \
+	$(KERNEL_MMU_OBJS) \
+	$(KERNEL_FS_OBJS) \
 	kernel/kmain.o \
 	kernel/irq.o \
 	kernel/kprint.o \
