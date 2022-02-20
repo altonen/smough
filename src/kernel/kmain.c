@@ -1,4 +1,5 @@
 #include <drivers/gfx/vga.h>
+#include <fs/multiboot2.h>
 #include <kernel/gdt.h>
 #include <kernel/idt.h>
 #include <kernel/irq.h>
@@ -15,6 +16,9 @@ void kmain(void *arg)
 
     /* initialize memory manager and all memory allocators */
     mm_init(arg);
+
+	/* parse elf symbol table for kassert() */
+    multiboot2_parse_elf(arg);
 
     kprint("hello, world");
 }
