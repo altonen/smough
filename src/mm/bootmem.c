@@ -5,6 +5,7 @@
 #include <mm/bootmem.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <errno.h>
 
 #define BOOTMEM_MAX_RANGES     5
 #define BOOTMEM_MAX_ENTRIES  256
@@ -16,11 +17,11 @@
  * it's a bit of a catch-22 problem.
  *
  * To remedy this situation, smough initializes so called "boot memory" which is used only
- * during booting and only for * creating a temporary memory allocator which can be used to
+ * during booting and only for creating a temporary memory allocator which can be used to
  * initializes the other memory allocators.
  *
  * The boot memory is represented as a simple bitmap of free pages. This information is given
- * to smough by Multiboot2 * which provides us a map of available and reclaimable memory ranges
+ * to smough by Multiboot2 which provides us a map of available and reclaimable memory ranges
  * which can then be used for temporary memory allocation.
  *
  * The memory map given by Multiboot2 can be split into several ranges and for now, smough only
@@ -65,7 +66,7 @@ static void bootmem_claim_range(unsigned type, unsigned long addr, size_t len)
 
 int mm_bootmem_init(void *arg)
 {
-    kprint("bootmem: initialize boot memory maps")
+    kprint("bootmem: initialize boot memory maps");
 
     for (int i = 0; i < BOOTMEM_MAX_RANGES; ++i) {
         mem_info.ranges[i].bm.bits = mem_info.ranges[i].mem;
@@ -79,4 +80,29 @@ int mm_bootmem_init(void *arg)
     multiboot2_map_memory(arg, bootmem_claim_range);
 
     return 0;
+}
+
+uint64_t mm_bootmem_alloc_block(size_t npages)
+{
+    for (size_t i = 0; i < mem_info.ptr; ++i) {
+        int start = bm_find_first_unset_range(
+            &mem_info.ranges[i].bm,
+            0,
+            mem_info.ranges[i].bm.len - 1,
+            npages
+        );
+
+        if (start == -ENOENT)
+            continue;
+
+        if (npages == 1) {
+            if (bm_set_bit(&mem_info.ranges[i].bm, start) != 0)
+                return INVALID_ADDRESS;
+        } else if (bm_set_range(&mem_info.ranges[i].bm, start, start + npages) != 0)
+            return INVALID_ADDRESS;
+
+        return mem_info.ranges[i].start + PAGE_SIZE * start;
+    }
+
+    return INVALID_ADDRESS;
 }
