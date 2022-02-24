@@ -2,6 +2,7 @@
 #include <mm/bootmem.h>
 #include <mm/heap.h>
 #include <mm/mmu.h>
+#include <mm/page.h>
 #include <mm/slab.h>
 
 int mm_init(void *arg)
@@ -13,6 +14,8 @@ int mm_init(void *arg)
     (void)mm_bootmem_init(arg);
     (void)mm_heap_preinit();
     (void)mm_slab_preinit();
+
+    mm_zones_init(arg);
 
     return 0;
 }
