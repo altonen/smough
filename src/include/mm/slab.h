@@ -5,9 +5,6 @@
 
 typedef struct mm_cache mm_cache_t;
 
-/* initialize the slab allocator using boot memory allocator */
-int mm_slab_preinit(void);
-
 /* allocate a slab cache
  *
  * `size` - cache element item size (0 < `size` <= 4096) */
@@ -28,5 +25,11 @@ void *mm_cache_alloc_entry(mm_cache_t *cache);
  * `cache` - non-null pointer to a slab cache
  * `entry` - non-null pointer to the entry */
 int mm_cache_free_entry(mm_cache_t *cache, void *entry);
+
+/* initialize the slab allocator using boot memory allocator */
+int mm_slab_preinit(void);
+
+/* initialize the slab allocator using page frame allocator */
+int mm_slab_init(void);
 
 #endif /* __SLAB_H__ */

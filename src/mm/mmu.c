@@ -21,6 +21,7 @@ int mm_init(void *arg)
     mm_zones_init(arg);
 
     (void)mm_heap_init();
+    (void)mm_slab_init();
 
     kprint("mmu: memory allocators initialized\n");
 
