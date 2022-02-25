@@ -6,6 +6,7 @@ It's a rewrite of an older kernel started in 2017 which over the years has degra
 
 # (planned) features
 
+* unit testing framework
 * amd64 platform support
 * symmetric multiprocessing
 * preemptive, dynamic priority-based multitasking
