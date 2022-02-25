@@ -23,4 +23,7 @@ void kfree(void *ptr);
  * so that SLAB and page frame allocator can be initialized */
 int mm_heap_preinit(void);
 
+/* initialize the kernel heap using page frame allocator */
+int mm_heap_init(void);
+
 #endif /* __MM_KERNEL_HEAP_H__ */

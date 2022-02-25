@@ -5,6 +5,7 @@
 #include <lib/list.h>
 #include <mm/bootmem.h>
 #include <mm/heap.h>
+#include <mm/page.h>
 #include <mm/slab.h>
 #include <errno.h>
 
@@ -30,43 +31,33 @@ struct mm_cache {
     struct cache_free_chunk *free_chunks;
 };
 
-static list_head_t free_list;
+static list_head_t __free_list;
 
 static cfe_t *__alloc_cfe(size_t item_size)
 {
     kassert(item_size != 0);
 
-    cfe_t *e = container_of(free_list.next, struct cache_fixed_entry, list);
+    if (__free_list.next) {
+        cfe_t *e = container_of(__free_list.next, struct cache_fixed_entry, list);
 
-    list_remove(&e->list);
-    e->num_free = (PAGE_SIZE / item_size) - 1;
+        list_remove(&e->list);
+        e->num_free = (PAGE_SIZE / item_size) - 1; // TODO:
 
-    return e;
-}
-
-int mm_slab_preinit(void)
-{
-    kprint("slab: initializing slab with bootmem\n");
-
-    list_init_null(&free_list);
-
-    /* allocate 16 KB for booting */
-    for (int i = 0; i < 2; ++i) {
-        uint64_t mem = mm_bootmem_alloc_block(1);
-        void *mem_v  = amd64_p_to_v(mem);
-
-        cfe_t *entry = kzalloc(sizeof(cfe_t));
-        kassert(entry != NULL);
-
-        entry->mem       = mem_v;
-        entry->next_free = mem_v;
-        entry->num_free  = PAGE_SIZE;
-
-        list_init_null(&entry->list);
-        list_append(&free_list, &entry->list);
+        return e;
     }
 
-    return 0;
+    uint64_t mem = mm_block_alloc(MM_ZONE_NORMAL, 1, 0);
+    kassert(mem != INVALID_ADDRESS);
+
+    void *virtual = amd64_p_to_v(mem);
+    cfe_t *entry  = kzalloc(sizeof(cfe_t));
+
+    entry->mem       = virtual;
+    entry->next_free = virtual;
+    entry->num_free  = PAGE_SIZE;
+
+    list_init_null(&entry->list);
+    return entry;
 }
 
 mm_cache_t *mm_cache_create(size_t size)
@@ -156,6 +147,58 @@ int mm_cache_free_entry(mm_cache_t *cache, void *entry)
         cache->free_chunks = cfc;
     else
         list_append(&cache->free_chunks->list, &cfc->list);
+
+    return 0;
+}
+
+int mm_slab_preinit(void)
+{
+    kprint("slab: initializing slab with bootmem\n");
+
+    list_init_null(&__free_list);
+
+    /* allocate 16 KB for booting */
+    for (int i = 0; i < 2; ++i) {
+        uint64_t mem = mm_bootmem_alloc_block(1);
+        void *mem_v  = amd64_p_to_v(mem);
+
+        cfe_t *entry = kzalloc(sizeof(cfe_t));
+
+        entry->mem       = mem_v;
+        entry->next_free = mem_v;
+        entry->num_free  = PAGE_SIZE;
+
+        list_init_null(&entry->list);
+        list_append(&__free_list, &entry->list);
+    }
+
+    return 0;
+}
+
+int mm_slab_init(void)
+{
+    kprint("slab: initializing slab with pfa\n");
+
+    list_init_null(&__free_list);
+
+    /* allocate 20 pages of initial memory for SLAB */
+    uint64_t mem;
+    void *virtual;
+    cfe_t *entry;
+
+    for (int i = 0; i < 5; ++i) {
+        mem = mm_block_alloc(MM_ZONE_NORMAL, 1, 0);
+        kassert(mem != INVALID_ADDRESS);
+
+        entry = kzalloc(sizeof(cfe_t));
+
+        entry->mem       = amd64_p_to_v(mem);
+        entry->next_free = entry->mem;
+        entry->num_free  = PAGE_SIZE; /* assume `elem_size` == 1 */
+
+        list_init_null(&entry->list);
+        list_append(&__free_list, &entry->list);
+    }
 
     return 0;
 }
