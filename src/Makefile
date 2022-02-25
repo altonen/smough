@@ -22,7 +22,8 @@ KERNEL_OBJS= \
 	kernel/irq.o \
 	kernel/kprint.o \
 	kernel/kpanic.o \
-	kernel/util.o
+	kernel/util.o \
+	kernel/ktrace.o
 
 OBJS = $(KERNEL_OBJS)
 CLEAN_OBJS = $(KERNEL_OBJS)

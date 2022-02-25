@@ -37,6 +37,12 @@ static inline void amd64_set_cr3(uint64_t address)
                   "mov %%rax, %%cr3" :: "r" (address));
 }
 
+/* convert a physical address to a virtual address */
+static inline uint64_t *amd64_p_to_v(uint64_t paddr)
+{
+    return (uint64_t *)(paddr + (KVSTART - KPSTART));
+}
+
 /* Initialize the archictecture-specific page directories */
 int mm_native_init(void);
 
