@@ -4,6 +4,8 @@
 #include <kernel/kprint.h>
 #include <kernel/util.h>
 #include <mm/bootmem.h>
+#include <mm/page.h>
+#include <mm/slab.h>
 #include <mm/types.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -26,7 +28,32 @@ typedef struct mm_arena {
 } __packed mm_arena_t;
 
 static mm_arena_t __mem;
+static mm_cache_t *__arena_cache;
 static int initialized;
+
+static void __alloc_arena(void)
+{
+    /* allocate new arena */
+    mm_arena_t *arena = mm_cache_alloc_entry(__arena_cache);
+    uint64_t mem = mm_block_alloc(MM_ZONE_NORMAL, HEAP_ARENA_SIZE, 0);
+
+    arena->base = (mm_chunk_t *)amd64_p_to_v(mem);
+    arena->size = PAGE_SIZE * (1 << HEAP_ARENA_SIZE);
+
+    arena->base->free = 1;
+    arena->base->next = NULL;
+    arena->base->prev = NULL;
+    arena->base->size = PAGE_SIZE * (1 << HEAP_ARENA_SIZE) - sizeof(mm_chunk_t);
+
+    /* add the new arena at the end of the heap */
+    mm_arena_t *iter = &__mem;
+
+    while (iter->next)
+        iter = iter->next;
+
+    iter->next = arena;
+    arena->prev = iter;
+}
 
 static mm_chunk_t *__split_block(mm_chunk_t *block, size_t size)
 {
@@ -112,8 +139,12 @@ void *kmalloc(size_t size)
 {
     mm_chunk_t *block;
 
-    if (!(block = __find_free(&__mem, size)))
-        kpanic("out of memory");
+    if (!(block = __find_free(&__mem, size))) {
+        __alloc_arena();
+
+        if (!(block = __find_free(&__mem, size)))
+            kpanic("out of memory");
+    }
 
     block->free = 0;
     return block + 1;
@@ -152,6 +183,27 @@ int mm_heap_preinit(void)
     __mem.base->free = 1;
     __mem.base->next = NULL;
     __mem.base->prev = NULL;
+
+    return 0;
+}
+
+int mm_heap_init(void)
+{
+    kprint("heap: initializing kernel heap with pfa\n");
+
+    uint64_t mem = mm_block_alloc(MM_ZONE_NORMAL, HEAP_ARENA_SIZE, 0);
+    kassert(mem != INVALID_ADDRESS);
+
+    __mem.base = (mm_chunk_t *)amd64_p_to_v(mem);
+    __mem.size = PAGE_SIZE * (1 << HEAP_ARENA_SIZE);
+
+    __mem.base->free = 1;
+    __mem.base->next = NULL;
+    __mem.base->prev = NULL;
+    __mem.base->size = PAGE_SIZE * (1 << HEAP_ARENA_SIZE) - sizeof(mm_chunk_t);
+
+	__arena_cache = mm_cache_create(sizeof(mm_arena_t));
+	kassert(__arena_cache != NULL);
 
     return 0;
 }
