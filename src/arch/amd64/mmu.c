@@ -1,4 +1,7 @@
+#include <kernel/common.h>
+#include <kernel/kassert.h>
 #include <kernel/util.h>
+#include <mm/page.h>
 #include <mm/types.h>
 #include <stdint.h>
 
@@ -34,3 +37,41 @@ int mm_native_init(void)
     return 0;
 }
 
+static uint64_t __alloc_page_directory_entry(void)
+{
+    uint64_t addr = mm_block_alloc(MM_ZONE_NORMAL, 1, MM_NO_FLAGS);
+    kmemset((void *)amd64_p_to_v(addr), 0, PAGE_SIZE);
+
+    return addr | MM_PRESENT | MM_READWRITE;
+}
+
+void amd64_map_page(uint64_t paddr, uint64_t vaddr, int flags)
+{
+    kassert(PAGE_ALIGNED(paddr));
+    kassert(PAGE_ALIGNED(vaddr));
+
+    uint64_t *pml4 = amd64_p_to_v(amd64_get_cr3());
+    uint64_t pml4i = (vaddr >> 39) & 0x1ff;
+    uint64_t pdpti = (vaddr >> 30) & 0x1ff;
+    uint64_t pdi   = (vaddr >> 21) & 0x1ff;
+    uint64_t pti   = (vaddr >> 12) & 0x1ff;
+
+    if (!(pml4[pml4i] & MM_PRESENT))
+        pml4[pml4i] = __alloc_page_directory_entry();
+    pml4[pml4i] |= flags;
+
+    uint64_t *pdpt = amd64_p_to_v(pml4[pml4i] & ~0xfff);
+
+    if (!(pdpt[pdpti] & MM_PRESENT))
+        pdpt[pdpti] = __alloc_page_directory_entry();
+    pdpt[pdpti] |= flags;
+
+    uint64_t *pd = amd64_p_to_v(pdpt[pdpti] & ~0xfff);
+
+    if (!(pd[pdi] & MM_PRESENT))
+        pd[pdi] = __alloc_page_directory_entry();
+    pd[pdi] |= flags;
+
+    uint64_t *pt = amd64_p_to_v(pd[pdi] & ~0xfff);
+    pt[pti]      = paddr | flags | MM_PRESENT;
+}
