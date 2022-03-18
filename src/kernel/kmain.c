@@ -1,4 +1,5 @@
 #include <drivers/gfx/vga.h>
+#include <drivers/ioapic.h>
 #include <fs/multiboot2.h>
 #include <kernel/gdt.h>
 #include <kernel/idt.h>
@@ -19,6 +20,9 @@ void kmain(void *arg)
 
 	/* parse elf symbol table for kassert() */
     multiboot2_parse_elf(arg);
+
+    /* initialize I/O APIC */
+    ioapic_initialize_all();
 
     kprint("hello, world");
 }

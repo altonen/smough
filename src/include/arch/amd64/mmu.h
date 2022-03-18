@@ -9,6 +9,7 @@
 #define KPML4I    511
 
 enum MM_PAGE_FLAGS {
+    MM_NO_FLAGS   = 0,
     MM_PRESENT    = 1,
     MM_READWRITE  = 1 << 1,
     MM_READONLY   = 0 << 1,
@@ -45,5 +46,8 @@ static inline uint64_t *amd64_p_to_v(uint64_t paddr)
 
 /* Initialize the archictecture-specific page directories */
 int mm_native_init(void);
+
+/* map a physical address `paddr` point to virtual address 'vaddr' */
+void amd64_map_page(uint64_t paddr, uint64_t vaddr, int flags);
 
 #endif /* __AMD64_MMU_TYPES_H__ */
