@@ -1,8 +1,20 @@
 #include <arch/amd64/cpu.h>
 #include <kernel/irq.h>
 #include <kernel/kpanic.h>
+#include <kernel/kassert.h>
 
-#define MAX_INT 256
+#define MAX_INT      256
+#define MAX_HANDLERS  16
+
+typedef struct irq_handler irq_handler_t;
+
+static struct irq_handler {
+    int installed;
+    struct {
+        uint32_t (*handler)(void *);
+        void *ctx;
+    } handlers[MAX_HANDLERS];
+} handlers[MAX_INT];
 
 const char *interrupts[] = {
     "division by zero",            "debug exception",          "non-maskable interrupt",
@@ -31,5 +43,29 @@ void interrupt_handler(isr_regs_t *cpu_state)
         default:
             kpanic("unsupported interrut!");
             break;
+    }
+}
+
+void irq_install_handler(int num, uint32_t (*handler)(void *), void *ctx)
+{
+    kassert((num >= 0 && num < MAX_INT) && (handler != NULL));
+    kassert(handlers[num].installed < MAX_HANDLERS);
+
+    kprint("irq - installing irq handler, num %d, handler 0x%x, ctx 0x%x", num, handler, ctx);
+
+    handlers[num].handlers[handlers[num].installed].handler = handler;
+    handlers[num].handlers[handlers[num].installed].ctx     = ctx;
+    handlers[num].installed++;
+}
+
+void irq_uninstall_handler(int num, uint32_t (*handler)(void *))
+{
+    kassert((num >= 0 && num < MAX_INT));
+
+    kprint("irq - uninstalling irq handler, num %d, handler 0x%x", num, handler);
+
+    for (int i = 0; i < handlers[num].installed; ++i) {
+        if (handlers[num].handlers[i].handler == handler)
+            handlers[num].handlers[i].handler = NULL;
     }
 }
