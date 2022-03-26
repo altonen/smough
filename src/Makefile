@@ -6,6 +6,7 @@ include $(DRIVERDIR)/make.config
 include $(LIBRARYDIR)/make.config
 include $(MMUDIR)/make.config
 include $(FSDIR)/make.config
+include $(ACPI_DIR)/make.config
 
 DESTDIR=$(realpath $(shell pwd)/../sysroot)
 
@@ -18,6 +19,7 @@ KERNEL_OBJS= \
 	$(KERNEL_LIB_OBJS) \
 	$(KERNEL_MMU_OBJS) \
 	$(KERNEL_FS_OBJS) \
+	$(KERNEL_ACPI_OBJS) \
 	kernel/kmain.o \
 	kernel/irq.o \
 	kernel/kprint.o \
