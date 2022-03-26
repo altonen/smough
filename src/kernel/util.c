@@ -55,3 +55,18 @@ int kstrcmp(const char *s1, const char *s2)
 
     return *(unsigned char *)s1 - *(unsigned char *)s2;
 }
+
+int kstrncmp(const char *s1, const char *s2, size_t len)
+{
+    size_t i;
+
+    for (i = 0; s1[i] != '\0' && s2[i] != '\0' && i < len; ++i) {
+        if (s1[i] < s2[i])
+            return -1;
+        else if (s1[i] > s2[i])
+            return 1;
+    }
+
+    return !(s1[i] == s2[i]);
+}
+
