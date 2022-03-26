@@ -1,4 +1,5 @@
 #include <drivers/ioapic.h>
+#include <drivers/lapic.h>
 #include <kernel/acpi/acpi.h>
 #include <kernel/compiler.h>
 #include <kernel/io.h>
@@ -195,7 +196,10 @@ int acpi_init(void)
 
         switch (hdr->type) {
             case MA_LOCAL_APIC:
-                // TODO:
+                lapic_register_dev(
+                    ((struct local_apic *)ptr)->acpi_cpu_id,
+                    ((struct local_apic *)ptr)->apic_id
+                );
                 break;
 
             case MA_IO_APIC:

@@ -1,5 +1,6 @@
 #include <drivers/gfx/vga.h>
 #include <drivers/ioapic.h>
+#include <drivers/lapic.h>
 #include <fs/multiboot2.h>
 #include <kernel/gdt.h>
 #include <kernel/idt.h>
@@ -25,6 +26,7 @@ void kmain(void *arg)
     /* initialize ACPI and I/O APIC */
     acpi_init();
     ioapic_initialize_all();
+    lapic_initialize();
 
     kprint("hello, world");
 }
