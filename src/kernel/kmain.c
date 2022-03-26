@@ -5,6 +5,7 @@
 #include <kernel/idt.h>
 #include <kernel/irq.h>
 #include <kernel/pic.h>
+#include <kernel/acpi/acpi.h>
 #include <mm/mmu.h>
 
 void kmain(void *arg)
@@ -21,7 +22,8 @@ void kmain(void *arg)
 	/* parse elf symbol table for kassert() */
     multiboot2_parse_elf(arg);
 
-    /* initialize I/O APIC */
+    /* initialize ACPI and I/O APIC */
+    acpi_init();
     ioapic_initialize_all();
 
     kprint("hello, world");
