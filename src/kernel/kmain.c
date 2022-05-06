@@ -1,4 +1,5 @@
 #include <drivers/gfx/vga.h>
+#include <drivers/gfx/vbe.h>
 #include <drivers/ioapic.h>
 #include <drivers/lapic.h>
 #include <drivers/device.h>
@@ -32,6 +33,7 @@ void kmain(void *arg)
 
     dev_init();
     pci_init();
+    vbe_init();
 
     kprint("hello, world");
 }
