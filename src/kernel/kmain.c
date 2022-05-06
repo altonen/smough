@@ -2,6 +2,7 @@
 #include <drivers/ioapic.h>
 #include <drivers/lapic.h>
 #include <drivers/device.h>
+#include <drivers/bus/pci.h>
 #include <fs/multiboot2.h>
 #include <kernel/gdt.h>
 #include <kernel/idt.h>
@@ -30,6 +31,7 @@ void kmain(void *arg)
     lapic_initialize();
 
     dev_init();
+    pci_init();
 
     kprint("hello, world");
 }
