@@ -1,6 +1,9 @@
 #include <drivers/gfx/vga.h>
+#include <drivers/gfx/vbe.h>
 #include <drivers/ioapic.h>
 #include <drivers/lapic.h>
+#include <drivers/device.h>
+#include <drivers/bus/pci.h>
 #include <fs/multiboot2.h>
 #include <kernel/gdt.h>
 #include <kernel/idt.h>
@@ -27,6 +30,10 @@ void kmain(void *arg)
     acpi_init();
     ioapic_initialize_all();
     lapic_initialize();
+
+    dev_init();
+    pci_init();
+    vbe_init();
 
     kprint("hello, world");
 }

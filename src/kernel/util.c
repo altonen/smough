@@ -70,3 +70,11 @@ int kstrncmp(const char *s1, const char *s2, size_t len)
     return !(s1[i] == s2[i]);
 }
 
+char *kstrcpy(char *dst, char *src)
+{
+    for (size_t i = 0; src[i] != '\0'; ++i)
+        dst[i] = src[i];
+
+    return dst;
+}
+

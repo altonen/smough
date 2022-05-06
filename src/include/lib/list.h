@@ -8,6 +8,9 @@ typedef struct list_head {
 	struct list_head *prev;
 } list_head_t;
 
+#define FOREACH(list, __i) \
+    for (list_head_t *__i = list.next; __i != &list; __i = __i->next)
+
 #define container_of(ptr, type, member) ({ \
                 const typeof(((type *)0)->member) *__mptr = (ptr); \
                 (type *)((char *)__mptr - offsetof(type, member));})
