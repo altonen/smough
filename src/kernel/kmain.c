@@ -12,6 +12,10 @@
 #include <kernel/acpi/acpi.h>
 #include <mm/mmu.h>
 
+/* defined by the linker */
+extern uint8_t _trampoline_start;
+extern uint8_t _trampoline_end;
+
 void kmain(void *arg)
 {
     /* GDT, IDT, and PIC */
@@ -35,5 +39,9 @@ void kmain(void *arg)
     pci_init();
     vbe_init();
 
-    kprint("hello, world");
+    kprint("hello, world\n");
+    kprint("trampoline size: 0x%x %u\n",
+        (size_t)&_trampoline_end - (size_t)&_trampoline_start,
+        (size_t)&_trampoline_end - (size_t)&_trampoline_start
+    );
 }
