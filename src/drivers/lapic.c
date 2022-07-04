@@ -188,7 +188,7 @@ void lapic_send_ipi(uint32_t high, uint32_t low)
 }
 
 void lapic_send_init(uint32_t cpu)
-{  
+{
     kprint("lapic - send init, cpu %u\n", cpu);
 
     uint32_t high = (lapics[cpu].lapic_id << 24) & 0xff000000;

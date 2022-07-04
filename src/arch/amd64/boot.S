@@ -136,6 +136,14 @@ _start_64:
     # multiboot info
     movq %rbx, %rdi
 
-    call kmain
+    cmp $0x13371338, %rbx
+    je init_ap
+
+    call init_bsp
+    cli
+    hlt
+
+_init_ap:
+    call init_ap
     cli
     hlt
