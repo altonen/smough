@@ -1,3 +1,4 @@
+#include <arch/amd64/mmu.h>
 #include <arch/amd64/cpu.h>
 #include <drivers/gfx/vga.h>
 #include <drivers/gfx/vbe.h>
@@ -9,16 +10,16 @@
 #include <kernel/gdt.h>
 #include <kernel/idt.h>
 #include <kernel/irq.h>
+#include <kernel/percpu.h>
 #include <kernel/pic.h>
 #include <kernel/util.h>
 #include <kernel/acpi/acpi.h>
 #include <mm/mmu.h>
 
 /* defined by the linker */
-extern uint8_t _trampoline_start;
-extern uint8_t _trampoline_end;
-
-volatile unsigned ap_initialized = 0;
+extern uint8_t _trampoline_start, _trampoline_end;
+extern uint8_t _percpu_start, _percpu_end;
+extern uint8_t _kernel_physical_end;
 
 void init_bsp(void *arg)
 {
@@ -47,22 +48,29 @@ void init_bsp(void *arg)
     size_t trmp_size = (size_t)&_trampoline_end - (size_t)&_trampoline_start;
     kmemcpy((uint8_t *)0x55000, &_trampoline_start, trmp_size);
 
-    lapic_send_init(1);
-    for (volatile unsigned k = 0; k < 5000000; ++k)
-        ;
-    lapic_send_sipi(1, 0x55);
+    /* initialize percpu areas for BSP and APs */
+    uint64_t kernel_end = (uint64_t)&_kernel_physical_end;
+    uint64_t percpu_start = ROUND_UP(kernel_end, PAGE_SIZE);
+    size_t percpu_size = (uint64_t)&_percpu_end - (uint64_t)&_percpu_start;
 
-    kprint("all %u CPUs initialized\n", ap_initialized);
+    for (size_t i = 0; i < lapic_get_cpu_count(); ++i) {
+        kmemcpy(
+            (uint8_t *)&percpu_start + i * percpu_size,
+            (uint8_t *)&_percpu_start,
+            percpu_size
+        );
+    }
 
-    for (;;);
+    /* initialize percpu state and GS base for BSP */
+    percpu_init(0);
+
+    kprint("hello, world\n");
 }
 
 void init_ap(void *arg)
 {
     gdt_init();
     idt_init();
-
-    ap_initialized++;
 
     for (;;);
 }

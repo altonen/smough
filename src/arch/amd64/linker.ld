@@ -38,6 +38,13 @@ SECTIONS
 
 	. = _boot_end + SIZEOF(.trampoline);
 
+	.percpu ALIGN(64) : AT(ADDR(.percpu) - V_START + P_START)
+	{
+		_percpu_start = LOADADDR(.percpu) + V_START - P_START;
+		*(.percpu)
+		_percpu_end = .;
+	}:percpu
+
 	.text ALIGN(4K) : AT(ADDR(.text) - V_START + P_START)
 	{
 		*(.text)
