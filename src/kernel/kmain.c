@@ -47,18 +47,10 @@ void init_bsp(void *arg)
     size_t trmp_size = (size_t)&_trampoline_end - (size_t)&_trampoline_start;
     kmemcpy((uint8_t *)0x55000, &_trampoline_start, trmp_size);
 
-    for (size_t i = 1; i < lapic_get_cpu_count(); ++i) {
-        lapic_send_init(i);
-        for (volatile unsigned k = 0; k < 50000000; ++k)
-            ;
-        lapic_send_sipi(i, 0x55);
-
-        while (ap_initialized == 0) {
-            cpu_relax();
-        }
-
-        kprint("ap_initialized %u\n", ap_initialized);
-    }
+    lapic_send_init(1);
+    for (volatile unsigned k = 0; k < 5000000; ++k)
+        ;
+    lapic_send_sipi(1, 0x55);
 
     kprint("all %u CPUs initialized\n", ap_initialized);
 

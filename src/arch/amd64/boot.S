@@ -137,7 +137,7 @@ _start_64:
     movq %rbx, %rdi
 
     cmp $0x13371338, %rbx
-    je init_ap
+    je _init_ap
 
     call init_bsp
     cli
