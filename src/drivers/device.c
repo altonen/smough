@@ -18,7 +18,7 @@ static struct {
 
 int dev_init(void)
 {
-    if ((dev_cache = mm_cache_create(sizeof(device_t))))
+    if (!(dev_cache = mm_cache_create(sizeof(device_t))))
         kprint("dev - failed to create SLAB cache for devices!\n");
 
     if (!(driver_cache = mm_cache_create(sizeof(driver_t))))
