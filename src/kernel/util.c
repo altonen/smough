@@ -114,3 +114,18 @@ char *kstrcat_s(char *s1, char *s2)
 
     return kstrncat(s1, s2, len);
 }
+
+char *kstrdup(const char *s)
+{
+    size_t n  = kstrlen(s), i;
+    char *new = kmalloc(n + 1);
+
+    if (!new)
+        return NULL;
+
+    for (i = 0; i < n; ++i)
+        new[i] = s[i];
+    new[i] = '\0';
+
+    return new;
+}
