@@ -129,3 +129,9 @@ char *kstrdup(const char *s)
 
     return new;
 }
+
+int kstrcmp_s(const char *s1, const char *s2)
+{
+    size_t len = kstrlen(s1);
+    return kstrncmp(s1, s2, len);
+}
