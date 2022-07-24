@@ -1,8 +1,36 @@
-#include <lib/bitmap.h>
+#include <kernel/kassert.h>
 #include <kernel/kprint.h>
+#include <lib/bitmap.h>
+#include <mm/heap.h>
 #include <errno.h>
 
-#define BM_GET_MULTIPLE_OF_32(n) (n % 32) ? ((n / 32) + 1) : (n / 32)
+bitmap_t *bm_alloc_bitmap(size_t nmemb)
+{
+    kassert(nmemb != 0);
+
+    bitmap_t *bm;
+    size_t num_bits;
+
+    if (!(bm = kzalloc(sizeof(bitmap_t))))
+        return NULL;
+
+    // round it up to nearest multiple of 32
+	num_bits = (nmemb % 32) ? ((nmemb / 32) + 1) : (nmemb / 32);
+    bm->len = num_bits * 32;
+
+    if (!(bm->bits = kzalloc(num_bits * sizeof(uint32_t)))) {
+        kfree(bm);
+        return NULL;
+    }
+
+    return bm;
+}
+
+void bm_dealloc_bitmap(bitmap_t *bm)
+{
+    kfree(bm->bits);
+    kfree(bm);
+}
 
 int bm_set_bit(bitmap_t *bm, uint32_t n)
 {
