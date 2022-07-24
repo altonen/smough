@@ -1,4 +1,5 @@
 #include <kernel/util.h>
+#include <mm/heap.h>
 #include <stdint.h>
 
 size_t kstrlen(const char *str)
@@ -88,4 +89,28 @@ char *kstrncpy(char *restrict dst, const char *restrict src, size_t n)
         dst[i] = '\0';
 
     return dst;
+}
+
+char *kstrncat(char *s1, char *s2, size_t len)
+{
+    char *ret = NULL, *rptr = NULL;
+    char *ptr = s1;
+
+    ret = rptr = kmalloc(len + 1);
+
+    while (*ptr != '\0')
+        *rptr = *ptr, rptr++, ptr++;
+
+    ptr = s2;
+    while (*ptr != '\0')
+        *rptr = *ptr, rptr++, ptr++;
+
+    return ret;
+}
+
+char *kstrcat_s(char *s1, char *s2)
+{
+    size_t len = kstrlen(s1) + kstrlen(s2);
+
+    return kstrncat(s1, s2, len);
 }
