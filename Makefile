@@ -1,15 +1,18 @@
 ROOTDIR?=$(shell pwd)
 include $(ROOTDIR)/Makefile.config
 
-.PHONY: all kernel iso clean headers
+.PHONY: all kernel iso clean headers toolchain
 
-all: headers kernel iso
+all: headers kernel toolchain iso
 
 headers:
 	@mkdir -p $(SYSROOT)
 	$(MAKE) --directory=src headers
 
-kernel:
+toolchain:
+	$(MAKE) --directory=toolchain all
+
+kernel: toolchain
 	$(MAKE) --directory=src install
 
 iso:
