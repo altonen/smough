@@ -29,7 +29,9 @@ KERNEL_OBJS= \
 	kernel/util.o \
 	kernel/ktrace.o
 
-OBJS = $(KERNEL_OBJS)
+BIN_OBJS = $(ROOTDIR)/toolchain/ramfs.bin
+
+OBJS = $(KERNEL_OBJS) $(BIN_OBJS)
 CLEAN_OBJS = $(KERNEL_OBJS)
 LINK_LIST = $(OBJS) $(LDFLAGS)
 
@@ -57,6 +59,14 @@ smough.kernel: $(OBJS) $(ARCHDIR)/linker.ld
 
 .S.o:
 	$(CC) -MD -c $< -o $@ $(CFLAGS)
+
+$(ROOTDIR)/toolchain/ramfs.bin:
+	@x86_64-elf-objcopy \
+		--input binary \
+		--output elf64-x86-64 \
+		--binary-architecture=i386 \
+		--rename-section .data=.ramfs \
+		$(ROOTDIR)/toolchain/initrd.bin $(ROOTDIR)/toolchain/ramfs.bin
 
 clean:
 	rm -f smough.kernel kernel.map

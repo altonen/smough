@@ -45,6 +45,13 @@ SECTIONS
 		_percpu_end = .;
 	}:percpu
 
+	.ramfs ALIGN(4K) : AT(ADDR(.ramfs) - V_START + P_START)
+	{
+		_ramfs_start = LOADADDR(.ramfs) + V_START - P_START;
+		*(.ramfs)
+		_ramfs_end = .;
+	}:ramfs
+
 	.text ALIGN(4K) : AT(ADDR(.text) - V_START + P_START)
 	{
 		*(.text)
