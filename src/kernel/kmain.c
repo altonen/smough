@@ -6,10 +6,12 @@
 #include <drivers/lapic.h>
 #include <drivers/device.h>
 #include <drivers/bus/pci.h>
+#include <fs/fs.h>
 #include <fs/multiboot2.h>
 #include <kernel/gdt.h>
 #include <kernel/idt.h>
 #include <kernel/irq.h>
+#include <kernel/kpanic.h>
 #include <kernel/percpu.h>
 #include <kernel/pic.h>
 #include <kernel/util.h>
@@ -40,6 +42,9 @@ void init_bsp(void *arg)
     ioapic_initialize_all();
     lapic_initialize();
 
+    /* initialize virtual file system */
+    vfs_init();
+
     dev_init();
     pci_init();
     vbe_init();
@@ -49,9 +54,9 @@ void init_bsp(void *arg)
     kmemcpy((uint8_t *)0x55000, &_trampoline_start, trmp_size);
 
     /* initialize percpu areas for BSP and APs */
-    uint64_t kernel_end = (uint64_t)&_kernel_physical_end;
+    uint64_t kernel_end   = (uint64_t)&_kernel_physical_end;
     uint64_t percpu_start = ROUND_UP(kernel_end, PAGE_SIZE);
-    size_t percpu_size = (uint64_t)&_percpu_end - (uint64_t)&_percpu_start;
+    size_t percpu_size    = (uint64_t)&_percpu_end - (uint64_t)&_percpu_start;
 
     for (size_t i = 0; i < lapic_get_cpu_count(); ++i) {
         kmemcpy(
@@ -63,6 +68,9 @@ void init_bsp(void *arg)
 
     /* initialize percpu state and GS base for BSP */
     percpu_init(0);
+
+    if (vfs_install_rootfs("initramfs", arg) < 0)
+        kpanic("failed to install rootfs");
 
     kprint("hello, world\n");
 }

@@ -11,7 +11,7 @@
 #include <stddef.h>
 
 // TODO:
-uint8_t _ramfs_start, _ramfs_end;
+extern uint8_t _ramfs_start, _ramfs_end;
 
 // the design of this initamfs is extremely simple
 //

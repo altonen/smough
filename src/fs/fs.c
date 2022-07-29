@@ -166,6 +166,8 @@ void vfs_init(void)
 
 int vfs_install_rootfs(char *type, void *data)
 {
+    kprint("vfs - initialize rootfs %s 0x%x\n", type, data);
+
     fs_type_t *fs = hm_get(fs_types, type);
 
     if (!fs)
