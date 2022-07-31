@@ -72,6 +72,7 @@ void init_bsp(void *arg)
 
     // initialize percpu state and GS base for BSP
     percpu_init(0);
+    tss_init();
 
     if (vfs_install_rootfs("initramfs", arg) < 0)
         kpanic("failed to install rootfs");
