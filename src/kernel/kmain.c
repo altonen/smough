@@ -18,42 +18,46 @@
 #include <kernel/acpi/acpi.h>
 #include <mm/mmu.h>
 
-/* defined by the linker */
+// defined by the linker
 extern uint8_t _trampoline_start, _trampoline_end;
 extern uint8_t _percpu_start, _percpu_end;
 extern uint8_t _kernel_physical_end;
 
 void init_bsp(void *arg)
 {
-    /* GDT, IDT, and PIC */
+    // GDT, IDT, and PIC
     gdt_init(); idt_init(); pic_init();
 
-    /* vga for kprint */
+    // vga for kprint
     vga_init();
 
-    /* initialize memory manager and all memory allocators */
+    // initialize memory manager and all memory allocators
     mm_init(arg);
 
-	/* parse elf symbol table for kassert() */
+	// parse elf symbol table for kassert()
     multiboot2_parse_elf(arg);
 
-    /* initialize ACPI and I/O APIC */
+    // initialize ACPI and I/O APIC
     acpi_init();
     ioapic_initialize_all();
     lapic_initialize();
 
-    /* initialize virtual file system */
+    // initialize virtual file system
     vfs_init();
 
+	// initialize the device subsystem and register all supported devices
     dev_init();
+
+    // initialize the PCI bus(es) and after PCI initialize VBE
+    // which requires PCI to get the linear frame buffer address
     pci_init();
     vbe_init();
 
-    /* copy SMP trampoline to 0x55000 */
+    // copy SMP trampoline to 0x55000
     size_t trmp_size = (size_t)&_trampoline_end - (size_t)&_trampoline_start;
     kmemcpy((uint8_t *)0x55000, &_trampoline_start, trmp_size);
 
-    /* initialize percpu areas for BSP and APs */
+    // initialize percpu areas for BSP and APs
     uint64_t kernel_end   = (uint64_t)&_kernel_physical_end;
     uint64_t percpu_start = ROUND_UP(kernel_end, PAGE_SIZE);
     size_t percpu_size    = (uint64_t)&_percpu_end - (uint64_t)&_percpu_start;
@@ -66,7 +70,7 @@ void init_bsp(void *arg)
         );
     }
 
-    /* initialize percpu state and GS base for BSP */
+    // initialize percpu state and GS base for BSP
     percpu_init(0);
 
     if (vfs_install_rootfs("initramfs", arg) < 0)
