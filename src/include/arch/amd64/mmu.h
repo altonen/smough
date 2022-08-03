@@ -2,6 +2,7 @@
 #define __AMD64_MMU_TYPES_H__
 
 #include <stdint.h>
+#include <kernel/kassert.h>
 
 #define PAGE_SIZE 4096
 #define KPSTART   0x0000000000100000
@@ -42,6 +43,13 @@ static inline void amd64_set_cr3(uint64_t address)
 static inline uint64_t *amd64_p_to_v(uint64_t paddr)
 {
     return (uint64_t *)(paddr + (KVSTART - KPSTART));
+}
+
+static inline uint64_t amd64_v_to_p(void *vaddr)
+{
+    kassert((uint64_t)vaddr > (KVSTART - KPSTART));
+
+    return ((uint64_t)vaddr - (KVSTART - KPSTART));
 }
 
 /* Initialize the archictecture-specific page directories */
