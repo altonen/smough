@@ -124,3 +124,72 @@ void *amd64_build_dir(void)
 
     return pml4_v;
 }
+
+void *amd64_duplicate_dir(void)
+{
+    uint64_t *pml4_cv = amd64_build_dir();             // copy, virtual
+    uint64_t *pml4_ov = amd64_p_to_v(amd64_get_cr3()); // original, virtual
+    uint64_t *pdpt_ov = NULL, *pdpt_cv = NULL;
+    uint64_t *pd_ov   = NULL, *pd_cv   = NULL;
+    uint64_t *pt_ov   = NULL, *pt_cv   = NULL;
+
+    // map all user pages, kernel stays untouched
+    for (size_t pml4i = 0; pml4i < 511; ++pml4i) {
+        if (pml4_ov[pml4i] & MM_PRESENT) {
+
+            // create new pml4 entry and set up pdpt pointers
+            pml4_cv[pml4i] = __alloc_page_directory_entry() | MM_PRESENT | MM_USER;
+            pdpt_ov        = amd64_p_to_v(pml4_ov[pml4i] & ~(PAGE_SIZE - 1));
+            pdpt_cv        = amd64_p_to_v(pml4_cv[pml4i] & ~(PAGE_SIZE - 1));
+
+            // level 2
+            for (size_t pdpti = 0; pdpti < 512; ++pdpti)  {
+                if (pdpt_ov[pdpti] & MM_PRESENT) {
+
+                    // create new pdpt entry and set up pd pointers
+                    pdpt_cv[pdpti] = __alloc_page_directory_entry() | MM_PRESENT | MM_USER;
+                    pd_ov          = amd64_p_to_v(pdpt_ov[pdpti] & ~(PAGE_SIZE - 1));
+                    pd_cv          = amd64_p_to_v(pdpt_cv[pdpti] & ~(PAGE_SIZE - 1));
+
+                    // mark all pages as copy-on-write (COW)
+                    //
+                    // this allows user-mode processes to efficiently share the same address
+                    // space and only make copy of the pages that they touch. As can be seen
+                    // below, all pages are marked as `MM_READONLY` which means that when kernel
+                    // tries to write to it, a page fault is raised and the page fault handler
+                    // will create a copy of the page for the caller but this time without
+                    // `MM_COW | MM_READONLY` flags
+                    for (size_t pdi = 0; pdi < 512; ++pdi)  {
+                        if (pd_ov[pdi] & MM_PRESENT) {
+
+                            // 2MB pages should not be mapped like 4KB pages
+                            if ((pd_ov[pdi] & MM_2MB)) {
+                                pd_ov[pdi] &= ~(PAGE_SIZE - 1); // reset flags
+                                pd_ov[pdi] |= (MM_COW | MM_READONLY | MM_PRESENT | MM_USER | MM_2MB);
+                                pd_cv[pdi]  = pd_ov[pdi];
+                            }
+
+                            // create new pd entry and set up pt pointers
+                            pd_cv[pdi] = __alloc_page_directory_entry() | MM_PRESENT | MM_USER;
+                            pt_ov      = amd64_p_to_v(pd_ov[pdi] & ~(PAGE_SIZE - 1));
+                            pt_cv      = amd64_p_to_v(pd_cv[pdi] & ~(PAGE_SIZE - 1));
+
+                            for (size_t pti = 0; pti < 512; ++pti) {
+                                if (pt_ov[pti] & MM_PRESENT) {
+                                    pt_ov[pti] &= ~(PAGE_SIZE - 1); // reset flags
+                                    pt_ov[pti] |= (MM_COW | MM_READONLY | MM_PRESENT | MM_USER);
+                                    pt_cv[pti]  = pt_ov[pti];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+	// TODO: wasteful
+    amd64_flush_tlb();
+
+    return pml4_cv;
+}

@@ -39,6 +39,12 @@ static inline void amd64_set_cr3(uint64_t address)
                   "mov %%rax, %%cr3" :: "r" (address));
 }
 
+static inline void amd64_flush_tlb(void)
+{
+    asm volatile ("mov %cr3, %rax \n"
+                  "mov %rax, %cr3");
+}
+
 /* convert a physical address to a virtual address */
 static inline uint64_t *amd64_p_to_v(uint64_t paddr)
 {
@@ -64,5 +70,13 @@ void *amd64_build_dir(void);
 // map a physical address `paddr` point to virtual address 'vaddr'
 // where `dir` points to a virtualized PML4 address
 void amd64_map_page_to_dir(uint64_t *pml4, uint64_t paddr, uint64_t vaddr, int flags);
+
+// duplicate page directory
+//
+// create a duplicate of the page directory that is located in cr3, making an identical
+// copy of the one and returning pointer to the pml4 of the copy.
+//
+// mark all leaf pages as copy-on-write and read-only, allowing efficient use of memory.
+void *amd64_duplicate_dir(void);
 
 #endif /* __AMD64_MMU_TYPES_H__ */
