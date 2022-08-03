@@ -52,10 +52,17 @@ static inline uint64_t amd64_v_to_p(void *vaddr)
     return ((uint64_t)vaddr - (KVSTART - KPSTART));
 }
 
-/* Initialize the archictecture-specific page directories */
+// initialize the archictecture-specific page directories
 int mm_native_init(void);
 
-/* map a physical address `paddr` point to virtual address 'vaddr' */
+// map a physical address `paddr` point to virtual address 'vaddr'
 void amd64_map_page(uint64_t paddr, uint64_t vaddr, int flags);
+
+// build page directory
+void *amd64_build_dir(void);
+
+// map a physical address `paddr` point to virtual address 'vaddr'
+// where `dir` points to a virtualized PML4 address
+void amd64_map_page_to_dir(uint64_t *pml4, uint64_t paddr, uint64_t vaddr, int flags);
 
 #endif /* __AMD64_MMU_TYPES_H__ */
