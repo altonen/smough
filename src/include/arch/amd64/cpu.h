@@ -1,6 +1,5 @@
 #ifndef __AMD64_CPU_H__
 #define __AMD64_CPU_H__
-#ifdef __amd64__
 
 #include <stdint.h>
 
@@ -58,11 +57,6 @@ static inline void cpu_relax(void)
     asm volatile ("pause");
 }
 
-void native_dump_registers(cpu_state_t *cpu_state);
-void native_context_load(unsigned long cr3, void *exec_state);
-void native_context_prepare(task_t *task, void *ip, void *sp);
-void native_context_switch(void **p_kstack, void *c_kstack);
-void native_context_switch_user(void **p_kstack, void *c_estate);
+void amd64_dump_registers(cpu_state_t *cpu_state);
 
-#endif /* __amd64__ */
 #endif /* __AMD64_CPU_H__ */
