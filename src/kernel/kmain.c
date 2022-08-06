@@ -1,5 +1,6 @@
 #include <arch/amd64/mmu.h>
 #include <arch/amd64/cpu.h>
+#include <drivers/console/ps2.h>
 #include <drivers/gfx/vga.h>
 #include <drivers/gfx/vbe.h>
 #include <drivers/ioapic.h>
@@ -79,6 +80,9 @@ void init_bsp(void *arg)
 
     if (vfs_install_rootfs("initramfs", arg) < 0)
         kpanic("failed to install rootfs");
+
+    if (ps2_init())
+        kpanic("failed to initialize ps2 driver");
 
     kprint("hello, world\n");
 }

@@ -3,6 +3,7 @@
 #include <fs/dentry.h>
 #include <fs/devfs.h>
 #include <fs/fs.h>
+#include <fs/pipe.h>
 #include <fs/initramfs.h>
 #include <lib/hashmap.h>
 #include <lib/list.h>
@@ -117,6 +118,7 @@ void vfs_init(void)
     dentry_init();
     inode_init();
     file_init();
+    pipe_init();
     binfmt_init();
 
     // register all known filesystems that might be needed
