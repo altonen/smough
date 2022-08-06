@@ -46,7 +46,24 @@ void irq_init(void)
 void interrupt_handler(cpu_state_t *cpu_state)
 {
     if (cpu_state->isr_num > MAX_INT)
-        kpanic("ISR number is too high");
+        kpanic("isr number is too high");
+
+    if (handlers[cpu_state->isr_num].installed) {
+        uint32_t ret;
+
+        for (int i = 0; i < handlers[cpu_state->isr_num].installed; ++i) {
+            ret = handlers[cpu_state->isr_num].handlers[i].handler(
+                    handlers[cpu_state->isr_num].handlers[i].ctx ?
+                        handlers[cpu_state->isr_num].handlers[i].ctx :
+                        cpu_state
+            );
+
+            if (ret == IRQ_HANDLED)
+                break;
+        }
+
+        return;
+    }
 
     switch (cpu_state->isr_num) {
         case 0x00: case 0x01: case 0x02: case 0x03:
@@ -62,7 +79,6 @@ void interrupt_handler(cpu_state_t *cpu_state)
             break;
     }
 }
-
 void irq_install_handler(int num, uint32_t (*handler)(void *), void *ctx)
 {
     kassert((num >= 0 && num < MAX_INT) && (handler != NULL));
