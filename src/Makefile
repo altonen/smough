@@ -21,7 +21,6 @@ KERNEL_OBJS= \
 	$(KERNEL_MMU_OBJS) \
 	$(KERNEL_FS_OBJS) \
 	$(KERNEL_ACPI_OBJS) \
-	$(KERNEL_ACPICA_OBJS) \
 	kernel/kmain.o \
 	kernel/irq.o \
 	kernel/kprint.o \
@@ -31,11 +30,11 @@ KERNEL_OBJS= \
 
 BIN_OBJS = $(ROOTDIR)/toolchain/ramfs.bin
 
-OBJS = $(KERNEL_OBJS) $(BIN_OBJS)
-CLEAN_OBJS = $(KERNEL_OBJS)
+OBJS = $(KERNEL_OBJS) $(BIN_OBJS) $(KERNEL_ACPICA_OBJS)
+CLEAN_OBJS = $(KERNEL_OBJS) $(BIN_OBJS)
 LINK_LIST = $(OBJS) $(LDFLAGS)
 
-.PHONY: all clean install headers install-kernel
+.PHONY: all clean clean-all install headers install-kernel
 .SUFFIXES: .o .c .S
 
 all: smough.kernel
