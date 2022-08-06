@@ -135,3 +135,18 @@ int kstrcmp_s(const char *s1, const char *s2)
     size_t len = kstrlen(s1);
     return kstrncmp(s1, s2, len);
 }
+
+void *kmemmove(void *dstptr, const void *srcptr, size_t size)
+{
+    uint8_t *dst = dstptr;
+    const uint8_t *src = srcptr;
+
+    if (dst < src)
+        for (size_t i = 0; i < size; ++i)
+            dst[i] = src[i];
+    else
+        for (size_t i = size; i; --i)
+            dst[i-1] = src[i-1];
+
+    return dstptr;
+}
