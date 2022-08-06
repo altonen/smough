@@ -1,12 +1,7 @@
+#include <arch/amd64/cpu.h>
 #include <arch/amd64/mmu.h>
-#include <kernel/common.h>
-#include <kernel/irq.h>
-#include <kernel/kpanic.h>
 #include <kernel/kprint.h>
 #include <kernel/percpu.h>
-#include <kernel/util.h>
-#include <mm/mmu.h>
-#include <mm/page.h>
 
 uint32_t amd64_page_fault_handler(void *ctx)
 {
