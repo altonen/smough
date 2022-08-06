@@ -25,11 +25,14 @@ extern uint8_t _kernel_physical_end;
 
 void init_bsp(void *arg)
 {
-    // GDT, IDT, and PIC
-    gdt_init(); idt_init(); pic_init();
+    // initialize the interrupt subsystem
+    irq_init();
 
     // vga for kprint
     vga_init();
+
+    // GDT, IDT, and PIC
+    gdt_init(); idt_init(); pic_init();
 
     // initialize memory manager and all memory allocators
     mm_init(arg);

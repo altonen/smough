@@ -2,11 +2,15 @@
 #include <kernel/irq.h>
 #include <kernel/kpanic.h>
 #include <kernel/kassert.h>
+#include <kernel/util.h>
 
 #define MAX_INT      256
 #define MAX_HANDLERS  16
 
 typedef struct irq_handler irq_handler_t;
+
+extern uint32_t amd64_page_fault_handler(void *ctx);
+extern uint32_t amd64_general_protection_fault_handler(void *ctx);
 
 static struct irq_handler {
     int installed;
@@ -25,6 +29,19 @@ const char *interrupts[] = {
     "unknown interrupt",           "coprocessor fault",        "alignment check",
     "machine check",               "simd floating point",      "virtualization",
 };
+
+void irq_init(void)
+{
+    kmemset(handlers, 0, sizeof(handlers));
+
+    handlers[VECNUM_PAGE_FAULT].installed           = 1;
+    handlers[VECNUM_PAGE_FAULT].handlers[0].handler = amd64_page_fault_handler;
+    handlers[VECNUM_PAGE_FAULT].handlers[0].ctx     = NULL;
+
+    handlers[VECNUM_GPF].installed           = 1;
+    handlers[VECNUM_GPF].handlers[0].handler = amd64_general_protection_fault_handler;
+    handlers[VECNUM_GPF].handlers[0].ctx     = NULL;
+}
 
 void interrupt_handler(cpu_state_t *cpu_state)
 {

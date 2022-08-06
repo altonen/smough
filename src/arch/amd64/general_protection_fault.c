@@ -2,7 +2,7 @@
 #include <kernel/percpu.h>
 #include <kernel/kprint.h>
 
-uint32_t general_protection_fault_handler(void *ctx)
+uint32_t amd64_general_protection_fault_handler(void *ctx)
 {
     cpu_state_t *cpu_state = (cpu_state_t *)ctx;
     uint32_t error_number  = cpu_state->err_num;
