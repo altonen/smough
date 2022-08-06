@@ -25,7 +25,7 @@ extern void irq15();
 
 static void *irq_routines[16] = { 0 };
 
-void pic_install_handler(void (*handler)(struct isr_regs *cpu), int irq_num)
+void pic_install_handler(void (*handler)(struct cpu_state *cpu), int irq_num)
 {
     if (irq_num > 15 || irq_num < 0 || !handler) {
         kdebug("Invalid IRQ handler or IRQ Number");
@@ -85,9 +85,9 @@ void pic_ack_interrupt(int irq_num)
 
 /* irq raised by master -> acknowledge master
  * irq raised by slave, -> acknowledge both slave AND master */
-void pic_handler(struct isr_regs *cpu_state)
+void pic_handler(struct cpu_state *cpu_state)
 {
-    void (*handler)(struct isr_regs *cpu_state);
+    void (*handler)(struct cpu_state *cpu_state);
 
     int irq_index = cpu_state->isr_num - 32;
     if (irq_index >= 16) {

@@ -11,12 +11,12 @@ typedef struct task task_t;
 #define GS_BASE   0xC0000101
 #define KGS_BASE  0xC0000102
 
-typedef struct isr_regs {
+typedef struct cpu_state {
     uint64_t rax, rcx, rdx, rbx, rbp, rsi, rdi;
     uint64_t r8, r9, r10, rr1, r12, r13, r14, r15;
     uint64_t isr_num, err_num;
     uint64_t rip, cs, eflags, rsp, ss;
-} __attribute__((packed)) isr_regs_t;
+} __attribute__((packed)) cpu_state_t;
 
 static inline void disable_irq(void)
 {
@@ -58,7 +58,7 @@ static inline void cpu_relax(void)
     asm volatile ("pause");
 }
 
-void native_dump_registers(isr_regs_t *cpu_state);
+void native_dump_registers(cpu_state_t *cpu_state);
 void native_context_load(unsigned long cr3, void *exec_state);
 void native_context_prepare(task_t *task, void *ip, void *sp);
 void native_context_switch(void **p_kstack, void *c_kstack);

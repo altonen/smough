@@ -26,7 +26,7 @@ const char *interrupts[] = {
     "machine check",               "simd floating point",      "virtualization",
 };
 
-void interrupt_handler(isr_regs_t *cpu_state)
+void interrupt_handler(cpu_state_t *cpu_state)
 {
     if (cpu_state->isr_num > MAX_INT)
         kpanic("ISR number is too high");
